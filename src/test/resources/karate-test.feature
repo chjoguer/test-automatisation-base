@@ -31,15 +31,23 @@ Feature: Test de API súper simple
 
   @id:3 @obtenerPersonajesNone
   Scenario: Obtener personaje por ID inexistente
-    Given path 'characters/999999999'
+    * def characterId = 9999999
+    * print characterId
+    Given path 'characters', characterId
     When method GET
     Then status 404
     And match response.error == 'Character not found'
 
   @id:4 @crearPersonajeDuplicado
   Scenario: Crear personaje con nombre duplicado
+    * def result = call read('karate-test.feature@crearPersonajeExitoso')
+    * def characterId = result.response.id
+    * def characterName = result.response.name
+    * def alterego = result.response.alterego
+    * def description = result.response.description
+    * def powers = result.response.powers
     Given path 'characters'
-    And request { "name": "Iron Man", "alterego": "Otro", "description": "Otro", "powers": ["Armor"] }
+    And request { "name": #(characterName), "alterego": #(alterego), "description": #(description), "powers": #(powers) }
     When method POST
     Then status 400
     And match response.error == 'Character name already exists'
@@ -65,8 +73,7 @@ Feature: Test de API súper simple
     Then status 201
     And match response.name == characterName
     And match response.id != null
-    * karate.set('characterId', response.id)
-    * print karate.get('characterId')
+
 
 
   @id:7 @acutalizarPersonajeExitoso
@@ -82,8 +89,8 @@ Feature: Test de API súper simple
 
   @id:8 @acutalizarPersonajeNoExistente
   Scenario: Actualizar personaje inexistente
-    * def characterId = karate.get('characterId')
-    Given path 'characters', 3333
+    * def characterId = 9999999
+    Given path 'characters', characterId
     And request { "name": "Iron Man", "alterego": "Tony Stark", "description": "Updated description", "powers": ["Armor", "Flight"] }
     When method PUT
     Then status 404
@@ -100,7 +107,8 @@ Feature: Test de API súper simple
 
   @id:10 @eliminarPersonajeInexistente
   Scenario: Eliminar personaje inexistente
-    Given path 'characters/224'
+    * def characterId = 9999999
+    Given path 'characters', characterId
     When method DELETE
     Then status 404
     And match response.error == 'Character not found'
